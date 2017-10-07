@@ -23,7 +23,7 @@ class Orders extends CI_Controller {
 			$data = array();		
 			$this->load->model('cart_model');
 			$this->load->model('user_model');
-			$cartData = $this->cart_model->getRows(array('select' => array('products.*'), 
+			$cartData = $this->cart_model->getRows(array('select' => array('products.*', 'cart.quantity as cart_quantity'), 
 														   'joins' => array('products' => 'products.id = cart.product_id'), 
 														   'conditions' => array('cart.user_id' => $this->session->userdata('userId'))));
 			$payment_method = $this->order_model->getRows(array('table' => 'payment_methods', 'id' => $this->input->post('payment_method')));	
@@ -54,16 +54,15 @@ class Orders extends CI_Controller {
 				$data = array();
 				
 				$this->load->model('cart_model');
-				$cartData = $this->cart_model->getRows(array('select' => array('products.id', 'products.price_leva'), 
+				$cartData = $this->cart_model->getRows(array('select' => array('products.id', 'products.price_leva', 'cart.quantity as cart_quantity'), 
 															   'joins' => array('products' => 'products.id = cart.product_id'), 
-															   'conditions' => array('cart.user_id' => $this->session->userdata('userId')), 
-															   'group_by' => array('products.id')));		
+															   'conditions' => array('cart.user_id' => $this->session->userdata('userId'))));		
 				if($cartData) {											   
 				
 					$amountLeva = 0.0;										   
 					foreach($cartData as $c) {
 						$c['price_leva'] = (float)$c['price_leva'];
-						$amountLeva += $c['price_leva'];
+						$amountLeva += ($c['price_leva'] * $c['cart_quantity']);
 					}
 
 					$orderData = array(
@@ -79,7 +78,8 @@ class Orders extends CI_Controller {
 						$purchaseData = array(
 							'product_id' => $c['id'],
 							'order_id' => $orderId,
-							'price_leva' => $c['price_leva']
+							'price_leva' => $c['price_leva'],
+							'quantity' => $c['cart_quantity']
 						);			
 						$insert = $this->order_model->insert($purchaseData, 'order_products');
 					}
@@ -118,7 +118,7 @@ class Orders extends CI_Controller {
 			$data = array();
 			
 			$this->load->model('cart_model');
-			$cartData = $this->cart_model->getRows(array('select' => array('products.*'), 
+			$cartData = $this->cart_model->getRows(array('select' => array('products.*', 'cart.quantity as cart_quantity'), 
 														   'joins' => array('products' => 'products.id = cart.product_id'), 
 														   'conditions' => array('cart.user_id' => $this->session->userdata('userId'))));		
 			if($cartData) {
@@ -167,7 +167,8 @@ class Orders extends CI_Controller {
 																					  'products.name as name', 
 																					  'products.image as image', 
 																					  'products.id as product_id', 
-																					  'products.price_leva'),
+																					  'products.price_leva',
+																					  'order_products.quantity'),
 																			'joins' => array('order_products' => 'order_products.product_id = products.id',
 																							 'orders' => 'orders.id = order_products.order_id'),
 																			'conditions' => array('orders.id' => $orderId)));
@@ -190,6 +191,22 @@ class Orders extends CI_Controller {
 		if($this->session->userdata('userId') && $this->input->post('orderId')) {
 						
 			$update = $this->order_model->update(array('set' => array('orders.status_id' => 2), 'conditions' => array('orders.id' => $this->input->post('orderId'))));
+			
+			if($update) {
+				echo 1;
+			} else {
+				echo 0;
+			}
+			
+		} else {
+			redirect('/users/login/');
+		}
+	}
+	
+	function deliver_order() {
+		if($this->session->userdata('userId') && $this->input->post('orderId')) {
+						
+			$update = $this->order_model->update(array('set' => array('orders.status_id' => 1), 'conditions' => array('orders.id' => $this->input->post('orderId'))));
 			
 			if($update) {
 				echo 1;

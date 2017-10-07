@@ -44,22 +44,18 @@ class Users extends CI_Controller {
 	public function orders() {
 		$data = array();
         $data['title'] = "Orders details";
-        if($this->session->userdata('isUserLoggedIn')){
+        if($this->session->userdata('isUserLoggedIn')) {
 			$this->load->model('order_model');
             $data['user'] = $this->user_model->getRows(array('id' => $this->session->userdata('userId')));
             $data['orders'] = $this->order_model->getRows(array('select' => array('orders.id as order_id',
-																				  'orders.report as report',
 																				  'orders.created_at as order_created_at',
 																				  'orders.amount_leva',
 																				  'statuses.name as status_name',
-																				  'statuses.id as status_id',
-																				  'payment_methods.name as payment_method_name', 
-																				  'payment_methods.image as payment_method_image', 
-																				  'payment_methods.details as payment_method_details'), 
+																				  'statuses.id as status_id'), 
 															    'conditions' => array('user_id' => $this->session->userdata('userId')), 
-															    'joins' => array('statuses' => 'statuses.id = orders.status_id', 
-																				 'payment_methods' => 'payment_methods.id = orders.payment_method_id')));
-	$this->load->view('orders', $data);
+															    'joins' => array('statuses' => 'statuses.id = orders.status_id'),
+																'order_by' => array('order_id' => 'DESC')));
+			$this->load->view('orders', $data);
         } else {
             redirect('/users/login/');
         }

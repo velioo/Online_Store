@@ -24,6 +24,11 @@
 		return url;
 	}
 	
+	function getChangeQuantityUrl() {
+		var url = "<?php echo site_url("cart/change_quantity"); ?>";
+		return url;
+	}
+	
 	function getRemoveFromCartUrl() {
 		var url = "<?php echo site_url("cart/remove"); ?>";
 		return url;

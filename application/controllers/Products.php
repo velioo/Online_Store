@@ -73,14 +73,14 @@ class Products extends CI_Controller {
 			$this->form_validation->set_rules('name', 'Name', 'required');
             $this->form_validation->set_rules('category_id', 'Category', 'required|integer');
             $this->form_validation->set_rules('price_leva', 'Price', 'required|callback_price_check');
-            $this->form_validation->set_rules('available', 'Available', 'integer');
+            $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer');
 
             $productData = array(
 				'category_id' => $this->input->post('category_id'),
                 'name' => $this->input->post('name'),
                 'description' => $this->input->post('description'),
                 'price_leva' => $this->input->post('price_leva'),
-                'available' => $this->input->post('available'),
+                'quantity' => $this->input->post('quantity'),
             );
             
             $imageSuccess = TRUE;
@@ -142,14 +142,14 @@ class Products extends CI_Controller {
 				$this->form_validation->set_rules('name', 'Name', 'required');
 				$this->form_validation->set_rules('category_id', 'Category', 'required|integer');
 				$this->form_validation->set_rules('price_leva', 'Price', 'required|callback_price_check');
-				$this->form_validation->set_rules('available', 'Available', 'integer');
+				$this->form_validation->set_rules('quantity', 'Quantity', 'required|integer');
 
 				$productData = array(
 					'category_id' => $this->input->post('category_id'),
 					'name' => $this->input->post('name'),
 					'description' => $this->input->post('description'),
 					'price_leva' => $this->input->post('price_leva'),
-					'available' => $this->input->post('available'),
+					'quantity' => $this->input->post('quantity'),
 				);
 				
 				$imageSuccess = TRUE;
@@ -222,13 +222,21 @@ class Products extends CI_Controller {
 		
     public function price_check($val) {
 		$val = floatval($val);
-        if (!is_float($val) ) {
+        if (!is_float($val) && $val < 0) {
             $this->form_validation->set_message('price_check', 'Цената трябва да е цяло или десетично число');
             return FALSE;
         } else {
             return TRUE;
         }
     }
+    
+    public function quantity_check($val) {
+		if (!is_int($val) || $val < 1) {
+		    return FALSE;
+		} else {
+			return TRUE;
+		}
+	}
     
     public function configure_pagination() {
 		$config['num_links'] = 5;

@@ -30,7 +30,7 @@
 				<div class="cart_product order">
 					<div class="cart_product_image_div order"><a href="#"><img src="<?php echo ($p['image'] != '') ? asset_url() . "imgs/" . htmlspecialchars($p['image'], ENT_QUOTES) : ""; ?>" onerror="this.src='<?php echo asset_url() . "imgs/no_image.png" ?>';" class="cart_product_image order"></a></div>
 					<div class="cart_product_name_div order"><p class="cart_product_name order"><?php echo htmlspecialchars($p['name'], ENT_QUOTES); ?></p></div>
-					<div class="cart_product_price order"><p>Цена: <?php echo htmlspecialchars($p['price_leva'], ENT_QUOTES) . " лв."; ?></p></div>						
+					<div class="cart_product_price order"><p>Цена: <?php echo htmlspecialchars($p['cart_quantity'] . " x " . $p['price_leva'], ENT_QUOTES) . " лв."; ?></p></div>						
 				</div>
 			<?php } echo '<div class="cart_purchase_div"><h3 class="cart_sum">Обща сума: </h3></br></div>'; } ?>
 		</div>

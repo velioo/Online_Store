@@ -312,3 +312,7 @@ font-size: 12px;
 .input_change_count {
 	width: 80px;
 }	
+
+#message {
+	margin-top: 30px;
+}

@@ -1,6 +1,7 @@
 $(document).ready(function() {
 	
 	var addToCartUrl = getAddToCartUrl();
+	var changeQuantityUrl = getChangeQuantityUrl();
 	var removeFromCartUrl = getRemoveFromCartUrl();
 	var cartCountPriceUrl = getCartCountPriceUrl();
 	var redirectUrl = getRedirectUrl();
@@ -67,7 +68,7 @@ $(document).ready(function() {
 	function change_cart(e, quantity) {
 		var product_id = e.parent().parent().data('id');
 		if(quantity > 0) { 
-			$.post(addToCartUrl, {product_id: product_id, quantity:quantity}, function(data, status) {
+			$.post(changeQuantityUrl, {product_id: product_id, quantity:quantity}, function(data, status) {
 				if(data) {
 					if(data != 'login') {
 						update_cart();

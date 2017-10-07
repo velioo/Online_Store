@@ -14,6 +14,7 @@
 <div id="body" style="width: 100%;">
 
 <div class="vertical-menu employee">
+	  <a href="<?php echo site_url("employees/orders"); ?>">Поръчки</a>
 	  <a href="<?php echo site_url("employees/dashboard"); ?>" class="active">Всички продукти</a>
 	  <a href="<?php echo site_url("employees/add_product"); ?>" >Добави продукт</a>
 </div>
@@ -40,7 +41,7 @@
 			<th>Име</th>
 			<th>Категория</th>
 			<th>Цена</th>
-			<th>Наличност</th>
+			<th>Брой</th>
 			<th>Създаден на</th>
 			<th>Последна промяна</th>
 			<th>Редактирай</th>
@@ -53,11 +54,11 @@
 			<td><?php echo htmlspecialchars($product['name'], ENT_QUOTES); ?></td>
 			<td><?php echo htmlspecialchars($product['category'], ENT_QUOTES); ?></td>
 			<td><?php echo htmlspecialchars($product['price_leva'], ENT_QUOTES); ?></td>
-			<td><?php echo htmlspecialchars($product['available'], ENT_QUOTES); ?></td>
+			<td><?php echo htmlspecialchars($product['quantity'], ENT_QUOTES); ?></td>
 			<td><?php echo htmlspecialchars($product['created_at'], ENT_QUOTES); ?></td>
 			<td><?php echo htmlspecialchars($product['updated_at'], ENT_QUOTES); ?></td>
-			<td><a href="<?php echo site_url("employees/update_product/{$product['id']}"); ?>">Редактирай</a></td>
-			<td><a href="#" data-id="<?php echo $product['id']; ?>" class="delete_record">Изтрий</a></td>
+			<td><a href="<?php echo site_url("employees/update_product/" . htmlspecialchars($product['id'], ENT_QUOTES)); ?>">Редактирай</a></td>
+			<td><a href="#" data-id="<?php echo htmlspecialchars($product['id'], ENT_QUOTES); ?>" class="delete_record">Изтрий</a></td>
 		  </tr>
 		  <?php } ?>
 		</tbody>

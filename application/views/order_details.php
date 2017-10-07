@@ -1,18 +1,29 @@
-<?php require 'header.php'; ?>
+<?php include 'dashboard_header.php'; ?>
 
-<div id="body">
+
+<div id="body" style="width: 100%;">
+
+<div class="vertical-menu employee">
+	  <a href="<?php echo site_url("employees/orders"); ?>" class="active">Поръчки</a>
+	  <a href="<?php echo site_url("employees/dashboard"); ?>" >Всички продукти</a>
+	  <a href="<?php echo site_url("employees/add_product"); ?>" >Добави продукт</a>
+</div>
+
+<div class="account-info employee">
+	<div class="profile_tab_title">Поръчка#<?php echo htmlentities($order['order_id'], ENT_QUOTES); ?></div>
+	<hr>
 	
-<h2>Поръчка# <?php echo htmlentities($order['order_id'], ENT_QUOTES); ?></h2>	
-	 <div class="vertical-menu">
-	  <a href="<?php echo site_url("users/cart"); ?>">Количка</a>
-	  <a href="<?php echo site_url("users/orders"); ?>" class="active">Поръчки</a>
-	  <a href="<?php echo site_url("users/account"); ?>">Настройки</a>
-	  <a href="<?php echo site_url("users/details"); ?>">Детайли</a>
-	</div>
+	<?php
+		if(!empty($this->session->userdata('success_msg'))){
+			echo '<p class="statusMsg">' . $this->session->userdata('success_msg') . '</p>';
+			$this->session->unset_userdata('success_msg');
+		} elseif(!empty($this->session->userdata('error_msg'))) {
+			echo '<p class="statusMsg">' . $this->session->userdata('error_msg') . '</p>';
+			$this->session->unset_userdata('error_msg');
+		}	
+	?>
 	
-	<div class="account-info">
-		<hr>
-		<div class="form-horizontal login_register_form">
+	<div class="form-horizontal login_register_form">
 			<div class="cart_products order">								
 				<?php if($order) echo "Плащане чрез:</br> "; ?> <img src="<?php echo asset_url() . "imgs/" . htmlentities($order['payment_method_image'], ENT_QUOTES); ?>" class="cart_product_image confirm"><?php echo htmlentities($order['payment_method_name'], ENT_QUOTES); ?>
 				<p><?php echo "<b>" . $order['payment_method_details'] . "</b>"; ?></p>
@@ -35,7 +46,11 @@
 				<?php } echo '<div class="cart_purchase_div"><h3 class="cart_sum_const">Обща сума: ' . $order['amount_leva'] . '</h3></br></div>'; } ?>
 			</div>
 		</div>
-	</div>
+
 </div>
 
-<?php require 'footer.php'; ?>
+</div>
+
+<?php include 'dashboard_footer.php'; ?>
+
+

@@ -3,6 +3,7 @@
 <div id="body" style="width: 100%;">
 
 <div class="vertical-menu employee">
+	  <a href="<?php echo site_url("employees/orders"); ?>">Поръчки</a>
 	  <a href="<?php echo site_url("employees/dashboard"); ?>">Виж всички продукти</a>
 	  <a href="<?php echo site_url("employees/add_product"); ?>" class="active">Добави продукт</a>
 </div>
@@ -48,28 +49,9 @@
 			 <?php echo form_error('price_leva','<span class="help-block">','</span>'); ?>
         </div>
         <div class="form-group">
-			 <?php
-				if(!empty($product['available']) && $product['available'] == '0'){
-					$not_available = 'checked="checked"';
-					$available = '';
-				}else{
-					$available = 'checked="checked"';
-					$not_available = '';
-				}
-            ?>
-            <div class="radio">
-                <label>
-                <input type="radio" name="available" value="1" <?php echo $available; ?>>
-                Наличен
-                </label>
-            </div>
-            <div class="radio">
-                <label>
-                  <input type="radio" name="available" value="0" <?php echo $not_available; ?>>
-                  Не е наличен
-                </label>
-            </div>
-             <?php echo form_error('available','<span class="help-block">','</span>'); ?>
+            <label for="quantity">*Брой:</label>
+			<input type="number" value="<?php echo !empty($product['quantity']) ? htmlentities($product['quantity']) : '0'; ?>" min="0" step="1" name="quantity" id="quantity" />
+			 <?php echo form_error('quantity','<span class="help-block">','</span>'); ?>
         </div>
         <div class="form-group">
             <label for="image">Изображение на продукта:</label>

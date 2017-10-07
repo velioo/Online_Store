@@ -9,6 +9,7 @@ class Employees extends CI_Controller {
 		$this->load->library('form_validation');
 		$this->load->model('employee_model');
 		$this->load->model('product_model');
+		$this->load->model('order_model');
 	}
 	
 	public function index() {
@@ -27,7 +28,7 @@ class Employees extends CI_Controller {
 				
 				$this->session->set_userdata('isEmployeeLoggedIn',TRUE);
 				$this->session->set_userdata('employeeId', $checkLogin['id']);
-				redirect('/employees/dashboard/');
+				redirect('/employees/orders/');
 				
 			} else {
 				$this->session->set_userdata('error_msg_timeless', 'Wrong email or password.');
@@ -36,7 +37,7 @@ class Employees extends CI_Controller {
             $this->load->view('employee_login', $data);
             
         } elseif ($this->session->userdata('isEmployeeLoggedIn')) {
-			redirect('/employees/dashboard/');
+			redirect('/employees/orders/');
 		} else {
 			$this->load->view('employee_login', $data);
 		}
@@ -52,7 +53,9 @@ class Employees extends CI_Controller {
 	public function dashboard() {
 		$data = array();
 		$data['title'] = 'Dashboard';
-		$data['products'] = $this->product_model->getRows(array('select' => array('products.*' , 'categories.name as category'), 'joins' => array('categories' => 'categories.id = products.category_id')));
+		$data['products'] = $this->product_model->getRows(array('select' => array('products.*' , 'categories.name as category'), 
+																'joins' => array('categories' => 'categories.id = products.category_id'),
+																'order_by' => array('created_at' => 'DESC')));
 		$this->load->view('dashboard', $data);
 	}
 	
@@ -77,6 +80,80 @@ class Employees extends CI_Controller {
 			$this->load->view('update_product', $data);
 		} else {
 			echo "Invalid arguments";
+		}
+	}
+	
+	public function orders() {
+		$data = array();
+		$data['title'] = 'Orders';
+		$data['orders'] = $this->order_model->getRows(array('select' => array('orders.id as order_id',
+																			  'orders.created_at as order_created_at',
+																		      'orders.amount_leva',
+																			  'statuses.name as status_name',
+																			  'statuses.id as status_id'), 
+															  'joins' => array('statuses' => 'statuses.id = orders.status_id', 
+																			   'payment_methods' => 'payment_methods.id = orders.payment_method_id'),
+															  'order_by' => array('created_at' => 'DESC')));
+		$data['statuses'] = $this->order_model->getRows(array('table' => 'statuses', 'where_in' => array('id' => array('4', '5', '6', '7'))));
+		$this->load->view('client_orders', $data);
+	}
+	
+	public function order_details($orderId=null) {
+		
+		if(is_numeric($orderId)) {
+
+			$data = array();		
+			$this->load->model('user_model');					
+			$this->load->model('product_model');						
+
+			$orderData = $this->order_model->getRows(array('select' => array('orders.user_id'), 'conditions' => array('orders.id' => $orderId), 'returnType' => 'single'));
+			if($orderData) {
+				
+				$data['userData'] = $this->user_model->getRows(array('id' => $orderData['user_id']));
+												
+				$data['order'] = $this->order_model->getRows(array('select' => array('orders.id as order_id',
+																			  'orders.report as report',
+																			  'orders.created_at as order_created_at',
+																			  'orders.amount_leva',
+																			  'statuses.name as status_name',
+																			  'statuses.id as status_id',
+																			  'payment_methods.name as payment_method_name', 
+																			  'payment_methods.image as payment_method_image', 
+																			  'payment_methods.details as payment_method_details'), 
+															'conditions' => array('orders.id' => $orderId), 
+															'joins' => array('statuses' => 'statuses.id = orders.status_id', 
+																			 'payment_methods' => 'payment_methods.id = orders.payment_method_id'),
+															'returnType' => 'single'));
+																			 
+				$data['products'] = $this->product_model->getRows(array('select' => array(
+																				  'products.name as name', 
+																				  'products.image as image', 
+																				  'products.id as product_id', 
+																				  'products.price_leva',
+																				  'order_products.quantity'),
+																		'joins' => array('order_products' => 'order_products.product_id = products.id',
+																						 'orders' => 'orders.id = order_products.order_id'),
+																		'conditions' => array('orders.id' => $orderId)));
+																																							
+				$data['title'] = 'Order Details';
+				$this->load->view('order_details.php', $data);			
+
+			} else {
+				
+			}
+			
+		} else {
+			redirect('/employees/');
+		}
+	}
+	
+	public function change_status() {
+		if($this->input->post('statusId') && $this->input->post('orderId')) {
+			
+			$update = $this->order_model->update(array('set' => array('status_id' => $this->input->post('statusId')),
+													   'conditions' => array('id' => $this->input->post('orderId'))));
+			if($update) echo true; else echo false;			
+			
 		}
 	}
 	
