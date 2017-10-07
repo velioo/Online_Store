@@ -103,10 +103,12 @@ class User_model extends CI_Model {
 		}
 	}
 
-	public function insert($data = array()) {
-		  
-		
-		$insert = $this->db->insert($this->tableName, $data);
+	public function insert($data = array(), $tableName=null) {
+		  		
+		if($tableName === null)
+			$insert = $this->db->insert($this->tableName, $data);
+		else
+			$insert = $this->db->insert($tableName, $data);
 		
 		if($insert) {
 			return $this->db->insert_id();
@@ -132,7 +134,7 @@ class User_model extends CI_Model {
 		
 	}
 
-	public function delete($params = array()) {
+	public function delete($params = array(), $tableName=null) {
 		
 		if(array_key_exists("conditions", $params)) {
 			foreach ($params['conditions'] as $key => $value) {
@@ -142,7 +144,10 @@ class User_model extends CI_Model {
 		
 		if(array_key_exists("id", $params)) {
 			$this->db->where('id', $params['id']);
-			$delete = $this->db->delete($this->tableName);
+			if($tableName !== null)
+				$delete = $this->db->delete($this->tableName);
+			else 
+				$delete = $this->db->delete($tableName);
 			return $delete;
 		} else {
 			return FALSE;

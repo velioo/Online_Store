@@ -288,50 +288,81 @@ class Users extends CI_Controller {
         
         if($this->input->post('resetSubmit')) {
 	
-		$this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email|callback_email_check_reverse');
-		
+			$this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email|callback_email_check_reverse');
+			
 			if ($this->form_validation->run() === TRUE) {
 
-				$temp_pass = $salt = bin2hex(random_bytes(64));
+				$temp_pass = bin2hex(random_bytes(64));
 					
-				$this->load->library('email', array('mailtype'=>'html'));
+				$this->load->library('email');
+				
+				$config['protocol']    = 'smtp';
+				$config['smtp_host']    = 'ssl://smtp.gmail.com';
+				$config['smtp_port']    = '465';
+				$config['smtp_timeout'] = '7';
+				$config['smtp_user']    = 'vanime.staff@gmail.com';
+				$config['smtp_pass']    = '!@#$%QWERT';
+				$config['charset']    = 'utf-8';
+				$config['newline']    = "\r\n";
+				$config['mailtype'] = 'html';     
+
+				$this->email->initialize($config);
+				
 				$this->email->from('vanime.staff@gmail.com', "Computer Store Reset Password");
 				$this->email->to(htmlentities($this->input->post('email'), ENT_QUOTES));
 				$this->email->subject("Reset your Password");
 					
 				$message = "<p>This email has been sent as a request to reset your password</p>";
-				$message .= "<p><a href='".site_url("users/reset_password/$temp_pass")."'>Click here </a>if you want to reset your password, if not, then ignore</p>";
+				$message .= "<p><a href='".site_url("users/reset_password/$temp_pass")."'> \nClick here </a>if you want to reset your password, if not, then ignore</p>";
 					
 				$this->email->message($message);
 					
-				if($this->email->send()){
+				if($this->email->send()) {
 		
-					$user_id = $this->users_model->getRows(array('conditions' => array('email' => $this->input->post('email')), 'returnType' => 'single'));					
+					$user_id = $this->user_model->getRows(array('select' => array('users.id'), 'conditions' => array('email' => $this->input->post('email')), 'returnType' => 'single'))['id'];								
 						
-					if($user_id) {						
-						$this->users_model->insert(array('table' => 'temp_codes', ''));
-						$data = array('header' => "Email was sent to {$this->input->post('email')}. <br/>Follow the instructions in it to reset your password.");
-						$this->login_page($data);
+					if($user_id) {				
+						$delete = $this->user_model->delete(array('conditions' => array('user_id' => $user_id)));			
+						$insert = $this->user_model->insert(array('user_id' => $user_id, 'hash' => $temp_pass), 'temp_codes');
+						if($insert) {
+							$this->session->set_userdata('success_msg', "Email was sent to {$this->input->post('email')}. <br/>Follow the instructions in it to reset your password.");
+						} else {
+							$this->session->set_userdata('error_msg', "There was an internal error...");
+						}
 					} else {
-						$data = array('header' => "There was an internal error...");
-						$this->login_page($data);
-					}
+						$this->session->set_userdata('error_msg', "There was an internal error...");
+					}									
 						
 				} else {
-					$data = array('header' => "Failed to send email...");
-					$this->login_page($data);
-				}
-				$data['email_sent'] = TRUE;  
-			}
-			
-			    
-            
-            $this->load->view('forgotten_password', $data);
+					$this->session->set_userdata('error_msg', "Failed to send email...");
+				}  
+				
+				redirect('/users/login/');
+			}						    
+				
+			 $this->load->view('forgotten_password', $data);
             
         } elseif ($this->session->userdata('isUserLoggedIn')) {
 			redirect('/users/account/');
 		} else {
 			$this->load->view('forgotten_password', $data);
+		}
+	}
+	
+	public function reset_password($hash=null) {
+		if($hash != null) {
+			
+			$exists = $this->user_model->getRows(array('table' => 'temp_codes', 
+													   'conditions' => array('hash' => $hash)));
+			
+			if($exists) {
+				echo "exists";
+			} else {
+				echo "does't exist";
+			}
+			
+		} else {
+			redirect('/welcome/');
 		}
 	}
     
@@ -376,7 +407,7 @@ class Users extends CI_Controller {
         if($checkEmail > 0){
              return TRUE;
         } else {        
-            $this->form_validation->set_message('email_check', 'The email is already taken.');
+            $this->form_validation->set_message('email_check_reverse', "The email doesn't exist");
             return FALSE;
         }
     }
