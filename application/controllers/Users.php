@@ -142,7 +142,7 @@ class Users extends CI_Controller {
                 'email' => $this->input->post('email'),
                 'password' => hash("sha256", $this->input->post('password') . $salt),
                 'salt' => $salt,
-                'gender' => $this->input->post('gender'),
+                'gender' => ($this->input->post('gender')) ? $this->input->post('gender') : 'Unknown',
                 'phone' => 	str_replace(' ', '', $this->input->post('phone')),
                 'phone_unformatted' => $this->input->post('phone'),
                 'country' => $this->input->post('country'),
@@ -154,7 +154,8 @@ class Users extends CI_Controller {
 				
 				$userData['phone'] = preg_replace("/[^0-9]/","", $userData['phone']);
 				
-                $insert = $this->user_model->insert($userData);           
+                $insert = $this->user_model->insert($userData);      
+
                 if($insert) {					
                     $this->session->set_userdata('success_msg', 'Ти успешно се регистрира. Може да се логнете.');
                     redirect('/users/login/');                    
@@ -313,7 +314,7 @@ class Users extends CI_Controller {
 				$this->email->subject("Reset your Password");
 					
 				$message = "<p>This email has been sent as a request to reset your password</p>";
-				$message .= "<p><a href='".site_url("users/reset_password/$temp_pass")."'> \nClick here </a>if you want to reset your password, if not, then ignore</p>";
+				$message .= "<p><a href='".site_url("users/reset_password_form/$temp_pass")."'> \nClick here </a>if you want to reset your password, if not, then ignore</p>";
 					
 				$this->email->message($message);
 					
@@ -322,21 +323,22 @@ class Users extends CI_Controller {
 					$user_id = $this->user_model->getRows(array('select' => array('users.id'), 'conditions' => array('email' => $this->input->post('email')), 'returnType' => 'single'))['id'];								
 						
 					if($user_id) {				
-						$delete = $this->user_model->delete(array('conditions' => array('user_id' => $user_id)));			
+						$delete = $this->user_model->delete(array('conditions' => array('user_id' => $user_id)), 'temp_codes');			
 						$insert = $this->user_model->insert(array('user_id' => $user_id, 'hash' => $temp_pass), 'temp_codes');
+				
 						if($insert) {
-							$this->session->set_userdata('success_msg', "Email was sent to {$this->input->post('email')}. <br/>Follow the instructions in it to reset your password.");
+							$this->session->set_userdata('long_msg', "Email was sent to {$this->input->post('email')}. <br/>Follow the instructions in it to reset your password.");
 						} else {
-							$this->session->set_userdata('error_msg', "There was an internal error...");
+							$this->session->set_userdata('long_msg', "There was an internal error...");
 						}
 					} else {
-						$this->session->set_userdata('error_msg', "There was an internal error...");
+						$this->session->set_userdata('long_msg', "There was an internal error...");
 					}									
 						
 				} else {
-					$this->session->set_userdata('error_msg', "Failed to send email...");
+					$this->session->set_userdata('long_msg', "Failed to send email...");
 				}  
-				
+
 				redirect('/users/login/');
 			}						    
 				
@@ -349,21 +351,72 @@ class Users extends CI_Controller {
 		}
 	}
 	
-	public function reset_password($hash=null) {
+	public function reset_password_form($hash=null) {
 		if($hash != null) {
 			
-			$exists = $this->user_model->getRows(array('table' => 'temp_codes', 
-													   'conditions' => array('hash' => $hash)));
+			$exists = $this->user_model->getRows(array('select' => array('temp_codes.hash'),
+													   'table' => 'temp_codes', 
+													   'conditions' => array('hash' => $hash),
+													   'returnType' => 'single'));			
 			
 			if($exists) {
-				echo "exists";
+				
+				$this->session->set_userdata('reset_hash', $exists['hash']);
+				
+				$data = array();
+				$data['title'] = 'Change Password';
+				$this->load->view('change_password.php', $data);
+				
 			} else {
-				echo "does't exist";
+				redirect('/users/login/');
 			}
 			
 		} else {
-			redirect('/welcome/');
+			redirect('users/login/');
 		}
+	}
+	
+	public function reset_password() {
+		
+		$data = array();
+		
+		if($this->input->post('resetSubmit')) {
+			
+            $this->form_validation->set_rules('password', 'Password', 'required|max_length[255]|callback_password_validate|max_length[255]');
+            $this->form_validation->set_rules('conf_password', 'confirm password', 'required|matches[password]|max_length[255]');
+            
+            $exists = $this->user_model->getRows(array('select' => array('users.id'),
+													   'table' => 'temp_codes', 
+													   'conditions' => array('hash' => $this->session->userdata('reset_hash')),
+													   'joins' => array('users' => 'users.id = temp_codes.user_id'),
+													   'returnType' => 'single'));
+            
+            if(($this->form_validation->run() === TRUE) && $exists) {
+				
+				$salt = bin2hex(random_bytes(32));
+				
+				$params = array(
+					'set' => array('password' => hash("sha256", $this->input->post('password') . $salt), 'salt' => $salt), 
+					'conditions' => array('id' => $exists['id'])
+				);
+					
+                $update = $this->user_model->update($params); 
+                          
+                if($update) {				
+					$delete = $this->user_model->delete(array('conditions' => array('user_id' => $exists['id'])), 'temp_codes');	
+					$this->session->unset_userdata('reset_hash');		
+                    $this->session->set_userdata('long_msg', 'Ти успешно промени паролата си.');                  
+                } else {
+					$this->session->set_userdata('long_msg', 'Възникна проблем, моля опитайте по-късно.');                   
+                }
+                
+                redirect('/users/login/');
+                              
+            } 
+		} 
+		
+		$this->reset_password_form($this->session->userdata('reset_hash'));	
+		
 	}
     
     public function logout() {

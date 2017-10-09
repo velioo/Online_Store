@@ -1,5 +1,16 @@
 <?php include 'dashboard_header.php'; ?>
 
+<script src="<?php echo asset_url() . "js/get_specifications.js"; ?>"></script>
+
+<script>
+	
+	function getSpecificationsUrl() {
+		var url = "<?php echo site_url("specifications/get_specifications"); ?>";
+		return url;
+	}
+
+</script>
+
 <div id="body" style="width: 100%;">
 
 <div class="vertical-menu employee">

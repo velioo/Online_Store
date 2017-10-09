@@ -93,6 +93,37 @@ CREATE TABLE `users` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `specifications` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` text,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE IF NOT EXISTS `category_specifications` (
+    `category_id` INT(11) NOT NULL,
+    `specification_id` INT(11) NOT NULL,
+    FOREIGN KEY (`category_id`) REFERENCES categories(`id`) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (`specification_id`) REFERENCES specifications(`id`) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `product_specifications` (
+    `product_id` INT(11) NOT NULL,
+    `specification_id` INT(11) NOT NULL,
+    PRIMARY KEY (`product_id`, `specification_id`),
+    FOREIGN KEY (`product_id`) REFERENCES products(`id`) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (`specification_id`) REFERENCES specifications(`id`) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+ALTER TABLE `product_specifications` ADD `value` TEXT NOT NULL AFTER `specification_id`;
+
+INSERT INTO `category_specifications` (`category_id`, `specification_id`)
+SELECT (SELECT `id` FROM `categories` WHERE name = 'Компютри'), `specifications.id`
+FROM `specifications`
+
+ALTER TABLE `category_specifications` ADD PRIMARY KEY(`category_id`,`specification_id`);
+
 ALTER TABLE `cart`
   ADD PRIMARY KEY (`id`),
   ADD KEY `product_id` (`product_id`),

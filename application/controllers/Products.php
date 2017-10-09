@@ -67,13 +67,14 @@ class Products extends CI_Controller {
 		
 		$data = array();
 		$data['title'] = 'Добави продукт';
-
+		var_dump($this->input->post('specs'));die();
 		if($this->input->post('productSubmit')) {
 			
 			$this->form_validation->set_rules('name', 'Name', 'required');
             $this->form_validation->set_rules('category_id', 'Category', 'required|integer');
             $this->form_validation->set_rules('price_leva', 'Price', 'required|callback_price_check');
             $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer');
+            $this->form_validation->set_rules('specs', 'Specifications', 'trim');
 
             $productData = array(
 				'category_id' => $this->input->post('category_id'),
@@ -81,7 +82,7 @@ class Products extends CI_Controller {
                 'description' => $this->input->post('description'),
                 'price_leva' => $this->input->post('price_leva'),
                 'quantity' => $this->input->post('quantity'),
-            );
+            );           
             
             $imageSuccess = TRUE;
             
@@ -108,8 +109,18 @@ class Products extends CI_Controller {
 			}                      
 
             if(($this->form_validation->run() == true) && $imageSuccess) {
-                $insert = $this->product_model->insert($productData);           
-                if($insert) {					
+               
+                $insertId = $this->product_model->insert($productData); 
+                
+                $productSpecs = array();              
+                foreach($this->input->post('specs') as $key => $value) {
+					$productSpecs['product_id'] = $insertId;
+					$productSpecs['specification_id'] = $key;
+					$productSpecs['value'] = $value;
+					$this->product_model->insert($productSpecs, 'product_specifications'); 
+				}
+                          
+                if($insertId) {					
                     $this->session->set_userdata('success_msg', 'Продуктът е успешно добавен. ');
                     redirect('/employees/dashboard/');                    
                 } else {
@@ -117,7 +128,8 @@ class Products extends CI_Controller {
                 }
             }  
             
-           $data['product'] = $productData;             
+           $data['product'] = $productData;      
+           $data['specs'] = $this->input->post('specs');     
 			
 		} 
 		

@@ -18,6 +18,10 @@ class Back_office {
         if( ($route === 'products') && (!$this->ci->session->userdata('isEmployeeLoggedIn')) && ($method !== 'search') ) {
             redirect('employees/login');
         }
+        
+        if( ($route === 'specifications') && (!$this->ci->session->userdata('isEmployeeLoggedIn')) ) {
+            redirect('employees/login');
+        }
 	}
 
 }

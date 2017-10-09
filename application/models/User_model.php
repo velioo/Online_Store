@@ -111,7 +111,7 @@ class User_model extends CI_Model {
 			$insert = $this->db->insert($tableName, $data);
 		
 		if($insert) {
-			return $this->db->insert_id();
+			return ($this->db->insert_id()) ? $this->db->insert_id() : true;
 		} else{
 			return false;
 		}
@@ -142,16 +142,15 @@ class User_model extends CI_Model {
 			}
 		}
 		
-		if(array_key_exists("id", $params)) {
-			$this->db->where('id', $params['id']);
-			if($tableName !== null)
-				$delete = $this->db->delete($this->tableName);
-			else 
-				$delete = $this->db->delete($tableName);
-			return $delete;
+
+		if($tableName === null) {
+			$delete = $this->db->delete($this->tableName);
 		} else {
-			return FALSE;
-		}  
+			$delete = $this->db->delete($tableName);
+		}
+		
+		return $delete;
+
 	}
 
 

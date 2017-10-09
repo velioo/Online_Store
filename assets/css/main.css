@@ -77,6 +77,11 @@ html,body{
 	color: blue;
 }
 
+.statusMsgLong {
+	color: blue;
+	font-size:16px;
+}
+
 #category {
 	width: auto;
 }
@@ -315,4 +320,8 @@ font-size: 12px;
 
 #message {
 	margin-top: 30px;
+}
+
+.specifications_div {
+	display: none;
 }

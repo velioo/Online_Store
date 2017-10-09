@@ -1,5 +1,18 @@
 <?php include 'dashboard_header.php'; ?>
 
+<script src="<?php echo asset_url() . "js/get_specifications.js"; ?>"></script>
+
+<script>
+	
+	function getSpecificationsUrl() {
+		var url = "<?php echo site_url("specifications/get_specifications"); ?>";
+		return url;
+	}
+
+</script>
+
+<?php (isset($specs)) ? var_dump($specs) : ""; ?>
+
 <div id="body" style="width: 100%;">
 
 <div class="vertical-menu employee">
@@ -37,11 +50,34 @@
         <div class="form-group">
 			 <label for="category_id">*Категория:</label>
 			 <select name="category_id" id="category" class="form-control">
+				<option value="" selected="selected">Избери категория</option>
 				<?php foreach($categories as $category) { ?>
 					<option value="<?php echo htmlentities($category['id']); ?>" <?php if(isset($product['category_id'])) { echo ($category['id'] == $product['category_id']) ? 'selected' : ''; }?> ><?php echo htmlentities($category['name']); ?></option>
 				<?php } ?>
 			 </select> 
 			 <?php echo form_error('category','<span class="help-block">','</span>'); ?>
+        </div>
+         <div class="form-group specifications_div">
+			 <label for="specifications">Спецификации:</label>
+			 <div class="table-responsive">          
+			  <table class="table">
+				<thead>
+				  <tr>
+					<th>Име на спецификация</th>
+					<th>Стойност</th>
+				  </tr>
+				</thead>
+				<tbody id="specifications_tbody">
+					<?php if(isset($specs)) { foreach($specs as $key => $value) { ?>
+						
+						<tr>
+							<td></td>
+						</tr>
+						
+					<?php }} ?>
+				</tbody>
+			  </table>
+			</div>
         </div>
         <div class="form-group">
             <label for="price_leva">*Цена в лв:</label>
