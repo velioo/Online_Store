@@ -79,6 +79,7 @@
 <nav class="navbar" id="navigation_top2">
   <div class="container-fluid" style="width: 1150px;">
     <ul class="nav navbar-nav">		
+
 	  <li <?php if(isset($category_id)) if($category_id == 0) echo "class='active'"; ?>><a href="<?php echo site_url(); ?>">Начало</a></li>
 	  <li <?php if(isset($category_id)) { if($category_id == 10) echo "class='active'"; } ?>><a href="<?php echo site_url("products/search/10"); ?>">Лаптопи</a></li>
 	  <li <?php if(isset($category_id)) { if($category_id == 9) echo "class='active'"; } ?>><a href="<?php echo site_url("products/search/9"); ?>">Компютри</a></li>	

@@ -10,6 +10,7 @@ class Employees extends CI_Controller {
 		$this->load->model('employee_model');
 		$this->load->model('product_model');
 		$this->load->model('order_model');
+		$this->load->model('tag_model');
 	}
 	
 	public function index() {
@@ -74,7 +75,10 @@ class Employees extends CI_Controller {
 	public function update_product($product_id=null) {
 		if($product_id !== null && is_numeric($product_id)) {
 			$data = array();
-			$data['product'] = $this->product_model->getRows(array('id' => $product_id));	
+			$data['product'] = $this->product_model->getRows(array('id' => $product_id));
+			$data['tags'] = $this->tag_model->getRows(array('select' => array('tags.name'),
+															'joins' => array('product_tags' => 'product_tags.tag_id = tags.id',
+																			 'products' => 'products.id = product_tags.product_id')));	
 			$data['categories'] = $this->product_model->getRows(array('table' => 'categories'));	
 			$data['title'] = 'Редактирай продукт';
 			$this->load->view('update_product', $data);

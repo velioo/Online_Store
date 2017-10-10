@@ -93,6 +93,7 @@ CREATE TABLE `users` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*
 CREATE TABLE IF NOT EXISTS `specifications` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `name` text,
@@ -123,6 +124,7 @@ SELECT (SELECT `id` FROM `categories` WHERE name = 'Компютри'), `specifi
 FROM `specifications`
 
 ALTER TABLE `category_specifications` ADD PRIMARY KEY(`category_id`,`specification_id`);
+*/
 
 ALTER TABLE `cart`
   ADD PRIMARY KEY (`id`),

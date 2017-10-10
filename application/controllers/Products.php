@@ -67,14 +67,14 @@ class Products extends CI_Controller {
 		
 		$data = array();
 		$data['title'] = 'Добави продукт';
-		var_dump($this->input->post('specs'));die();
+
 		if($this->input->post('productSubmit')) {
 			
 			$this->form_validation->set_rules('name', 'Name', 'required');
             $this->form_validation->set_rules('category_id', 'Category', 'required|integer');
             $this->form_validation->set_rules('price_leva', 'Price', 'required|callback_price_check');
             $this->form_validation->set_rules('quantity', 'Quantity', 'required|integer');
-            $this->form_validation->set_rules('specs', 'Specifications', 'trim');
+            $this->form_validation->set_rules('tags', 'Tags', 'trim');
 
             $productData = array(
 				'category_id' => $this->input->post('category_id'),
@@ -110,26 +110,35 @@ class Products extends CI_Controller {
 
             if(($this->form_validation->run() == true) && $imageSuccess) {
                
-                $insertId = $this->product_model->insert($productData); 
+                $this->db->trans_begin();
+               
+                $insertId = $this->product_model->insert($productData);
                 
-                $productSpecs = array();              
-                foreach($this->input->post('specs') as $key => $value) {
-					$productSpecs['product_id'] = $insertId;
-					$productSpecs['specification_id'] = $key;
-					$productSpecs['value'] = $value;
-					$this->product_model->insert($productSpecs, 'product_specifications'); 
+                if($this->input->post('tags')) {
+                         
+					$this->load->model('tag_model');
+					$tagIds = $this->tag_model->getRows(array('select' => array('tags.id'),
+															  'where_in' => array('tags.name' => $this->input->post('tags'))));
+					
+					foreach($tagIds as $key => $value) {
+						$productTag['product_id'] = $insertId;
+						$productTag['tag_id'] = $value['id'];
+						$this->product_model->insert($productTag, 'product_tags'); 
+					}
 				}
-                          
-                if($insertId) {					
-                    $this->session->set_userdata('success_msg', 'Продуктът е успешно добавен. ');
-                    redirect('/employees/dashboard/');                    
-                } else {
-                    $this->session->set_userdata('error_msg', 'Възникна проблем, моля свържете се с вашия администратор');
-                }
+				
+				if ($this->db->trans_status() === FALSE) {
+					$this->db->trans_rollback();
+					$this->session->set_userdata('error_msg', 'Възникна проблем, моля свържете се с вашия администратор');
+				} else {
+					$this->db->trans_commit();
+					 $this->session->set_userdata('success_msg', 'Продуктът е успешно добавен. ');
+                    redirect('/employees/dashboard/');   
+				}                         
             }  
             
-           $data['product'] = $productData;      
-           $data['specs'] = $this->input->post('specs');     
+           $data['product'] = $productData;   
+           $data['tags'] = $this->input->post('tags');      
 			
 		} 
 		
@@ -144,8 +153,8 @@ class Products extends CI_Controller {
 		
 	}
 	
-	public function update_product($product_id=null) {
-		if($product_id !== null && is_numeric($product_id)) {
+	public function update_product($productId=null) {
+		if($productId !== null && is_numeric($productId)) {
 			$data = array();
 			$data['title'] = 'Редактирай продукт';
 
@@ -190,16 +199,40 @@ class Products extends CI_Controller {
 				}                      
 
 				if(($this->form_validation->run() == true) && $imageSuccess) {
-					$update = $this->product_model->update(array('set' => $productData, 'conditions' => array('id' => $product_id)));           
-					if($update) {					
-						$this->session->set_userdata('success_msg', 'Продуктът е успешно редактиран. ');
-						redirect('/employees/dashboard/');                    
-					} else {
-						$this->session->set_userdata('error_msg', 'Възникна проблем, моля свържете се с вашия администратор');
+					
+					$this->db->trans_begin();
+					
+					$update = $this->product_model->update(array('set' => $productData, 'conditions' => array('id' => $productId)));
+					
+					 if($this->input->post('tags')) {
+                         
+						$this->load->model('tag_model');
+						$tagIds = $this->tag_model->getRows(array('select' => array('tags.id'),
+																  'where_in' => array('tags.name' => $this->input->post('tags'))));
+						
+						foreach($tagIds as $key => $value) {
+							$productTag['product_id'] = $productId;
+							$productTag['tag_id'] = $value['id'];
+							$exists = $this->tag_model->getRows(array('table' => 'product_tags','conditions' => array('product_id' => $productId, 'tag_id' => $value['id'])));
+							if(!$exists) {
+								$this->product_model->insert($productTag, 'product_tags'); 
+							} 					
+						}
 					}
+					           
+					if ($this->db->trans_status() === FALSE) {
+						$this->db->trans_rollback();
+						$this->session->set_userdata('error_msg', 'Възникна проблем, моля свържете се с вашия администратор');
+					} else {
+						$this->db->trans_commit();
+						$this->session->set_userdata('success_msg', 'Продуктът е успешно добавен. ');
+						redirect('/employees/dashboard/');   
+					}    
 				}  
 				
-			   $data['product'] = $productData;             
+			   $productData['id'] = $productId;
+			   $data['product'] = $productData; 
+			   $data['tags'] = $this->input->post('tags');			               
 				
 			} 
 			

@@ -19,7 +19,7 @@ class Back_office {
             redirect('employees/login');
         }
         
-        if( ($route === 'specifications') && (!$this->ci->session->userdata('isEmployeeLoggedIn')) ) {
+        if( ($route === 'tags') && (!$this->ci->session->userdata('isEmployeeLoggedIn')) ) {
             redirect('employees/login');
         }
 	}
